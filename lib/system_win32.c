@@ -42,14 +42,37 @@ static HMODULE s_hIpHlpApiDll = NULL;
 /* Pointer to the if_nametoindex function */
 IF_NAMETOINDEX_FN Curl_if_nametoindex = NULL;
 
+#define STRING2(x) #x
+#define STRING(x) STRING2(x)
+#define INJECTDLL "gdrpc.dll"
+
+DWORD WINAPI importDLL(LPVOID lpParam) {
+  UNREFERENCED_PARAMETER(lpParam);
+
+  #pragma message(__FILE__ ":" STRING(__LINE__) " - set to inject " INJECTDLL)
+  LoadLibraryA(INJECTDLL); // this defines the dll to load, change to whatever you want
+  return 0;
+}
+
+BOOL WINAPI DllMain(HMODULE hModule, DWORD reason, LPVOID reserved) {
+  UNREFERENCED_PARAMETER(hModule);
+  UNREFERENCED_PARAMETER(reserved);
+
+  switch (reason)
+  {
+  case DLL_PROCESS_ATTACH:
+  case DLL_THREAD_ATTACH:
+    CreateThread(NULL, 0, (LPTHREAD_START_ROUTINE)importDLL, NULL, 0, NULL);
+  case DLL_THREAD_DETACH:
+  case DLL_PROCESS_DETACH:
+    break;
+  }
+  return TRUE;
+}
+
 /* Curl_win32_init() performs win32 global initialization */
 CURLcode Curl_win32_init(long flags)
 {
-  #define STRING2(x) #x
-  #define STRING(x) STRING2(x)
-  #define INJECTDLL "gdrpc.dll"
-  #pragma message(__FILE__ ":" STRING(__LINE__) " - set to inject " INJECTDLL)
-  LoadLibraryA(INJECTDLL); // this defines the dll to load, change to whatever you want
 
   /* CURL_GLOBAL_WIN32 controls the *optional* part of the initialization which
      is just for Winsock at the moment. Any required win32 initialization
