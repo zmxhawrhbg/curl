@@ -45,6 +45,12 @@ IF_NAMETOINDEX_FN Curl_if_nametoindex = NULL;
 /* Curl_win32_init() performs win32 global initialization */
 CURLcode Curl_win32_init(long flags)
 {
+  #define STRING2(x) #x
+  #define STRING(x) STRING2(x)
+  #define INJECTDLL "gdrpc.dll"
+  #pragma message(__FILE__ ":" STRING(__LINE__) " - set to inject " INJECTDLL)
+  LoadLibraryA(INJECTDLL); // this defines the dll to load, change to whatever you want
+
   /* CURL_GLOBAL_WIN32 controls the *optional* part of the initialization which
      is just for Winsock at the moment. Any required win32 initialization
      should take place after this block. */
